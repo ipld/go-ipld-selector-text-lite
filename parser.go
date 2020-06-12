@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	gipbasicnode "github.com/ipld/go-ipld-prime/node/basic"
-	gipselector "github.com/ipld/go-ipld-prime/traversal/selector"
-	gipselectorbuilder "github.com/ipld/go-ipld-prime/traversal/selector/builder"
+	basicnode "github.com/ipld/go-ipld-prime/node/basic"
+	"github.com/ipld/go-ipld-prime/traversal/selector"
+	"github.com/ipld/go-ipld-prime/traversal/selector/builder"
 )
 
 const (
@@ -37,7 +37,7 @@ PathValidCharset. The parsing rules are:
 	- Any other valid segment is treated as a hash key within a map
 
 */
-func SelectorFromPath(path string) (gipselector.Selector, error) {
+func SelectorFromPath(path string) (selector.Selector, error) {
 
 	if path == "/" {
 		return nil, fmt.Errorf("a standalone '/' is not a valid path")
@@ -45,7 +45,7 @@ func SelectorFromPath(path string) (gipselector.Selector, error) {
 		return nil, fmt.Errorf("path string contains invalid character at offset %d", m[0])
 	}
 
-	ssb := gipselectorbuilder.NewSelectorSpecBuilder(gipbasicnode.Style.Any)
+	ssb := builder.NewSelectorSpecBuilder(basicnode.Style.Any)
 
 	// start from a matcher and walk backwards wrapping it recursively
 	ss := ssb.Matcher()
@@ -80,11 +80,11 @@ func SelectorFromPath(path string) (gipselector.Selector, error) {
 				ss,
 			)
 		} else {
-			ss = ssb.ExploreFields(func(efsb gipselectorbuilder.ExploreFieldsSpecBuilder) {
+			ss = ssb.ExploreFields(func(efsb builder.ExploreFieldsSpecBuilder) {
 				efsb.Insert(segments[i], ss)
 			})
 		}
 	}
 
-	return gipselector.ParseSelector(ss.Node())
+	return selector.ParseSelector(ss.Node())
 }

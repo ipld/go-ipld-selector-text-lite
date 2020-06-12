@@ -12,11 +12,11 @@ import (
 	mdag "github.com/ipfs/go-merkledag"
 	mdagtest "github.com/ipfs/go-merkledag/test"
 
-	gip "github.com/ipld/go-ipld-prime"
-	gippb "github.com/ipld/go-ipld-prime-proto"
-	gipcidlink "github.com/ipld/go-ipld-prime/linking/cid"
-	gipbasicnode "github.com/ipld/go-ipld-prime/node/basic"
-	giptraversal "github.com/ipld/go-ipld-prime/traversal"
+	"github.com/ipld/go-ipld-prime"
+	dagpb "github.com/ipld/go-ipld-prime-proto"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
+	basicnode "github.com/ipld/go-ipld-prime/node/basic"
+	"github.com/ipld/go-ipld-prime/traversal"
 
 	textselector "github.com/ribasushi/go-ipld-selector-text-lite"
 )
@@ -57,8 +57,8 @@ func ExampleSelectorFromPath() {
 
 	ds, rootCid := fixtureDagService()
 
-	linkBlockLoader := func(lnk gip.Link, _ gip.LinkContext) (io.Reader, error) {
-		if cl, isCid := lnk.(gipcidlink.Link); !isCid {
+	linkBlockLoader := func(lnk ipld.Link, _ ipld.LinkContext) (io.Reader, error) {
+		if cl, isCid := lnk.(cidlink.Link); !isCid {
 			return nil, fmt.Errorf("unexpected link type %#v", lnk)
 		} else {
 			node, err := ds.Get(context.TODO(), cl.Cid)
@@ -69,22 +69,22 @@ func ExampleSelectorFromPath() {
 		}
 	}
 
-	gipNilCtx := gip.LinkContext{}
-	gipNodeStyleChooser := gippb.AddDagPBSupportToChooser(
-		func(gip.Link, gip.LinkContext) (gip.NodeStyle, error) {
-			return gipbasicnode.Style.Any, nil
+	nilLinkCtx := ipld.LinkContext{}
+	nodeStyleChooser := dagpb.AddDagPBSupportToChooser(
+		func(ipld.Link, ipld.LinkContext) (ipld.NodeStyle, error) {
+			return basicnode.Style.Any, nil
 		},
 	)
 
-	gipNodeStyle, err := gipNodeStyleChooser(gipcidlink.Link{Cid: rootCid}, gipNilCtx)
+	nodeStyle, err := nodeStyleChooser(cidlink.Link{Cid: rootCid}, nilLinkCtx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	startNodeBuilder := gipNodeStyle.NewBuilder()
-	if err := (gipcidlink.Link{Cid: rootCid}).Load(
+	startNodeBuilder := nodeStyle.NewBuilder()
+	if err := (cidlink.Link{Cid: rootCid}).Load(
 		context.TODO(),
-		gipNilCtx,
+		nilLinkCtx,
 		startNodeBuilder,
 		linkBlockLoader,
 	); err != nil {
@@ -92,16 +92,16 @@ func ExampleSelectorFromPath() {
 	}
 	startNode := startNodeBuilder.Build()
 
-	err = giptraversal.Progress{
-		Cfg: &giptraversal.Config{
+	err = traversal.Progress{
+		Cfg: &traversal.Config{
 			LinkLoader:                 linkBlockLoader,
-			LinkTargetNodeStyleChooser: gipNodeStyleChooser,
+			LinkTargetNodeStyleChooser: nodeStyleChooser,
 		},
 	}.WalkAdv(
 		startNode,
 		parsedSelector,
-		func(p giptraversal.Progress, n gip.Node, _ giptraversal.VisitReason) error {
-			if rawNode, ok := n.(*gippb.RawNode); ok {
+		func(p traversal.Progress, n ipld.Node, _ traversal.VisitReason) error {
+			if rawNode, ok := n.(*dagpb.RawNode); ok {
 				content, _ := rawNode.AsBytes()
 				fmt.Printf("%s\n", content)
 			}
