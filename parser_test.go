@@ -3,7 +3,7 @@ package textselector_test
 import (
 	"testing"
 
-	textselector "github.com/ribasushi/go-ipld-selector-text-lite"
+	textselector "github.com/ipld/go-ipld-selector-text-lite"
 )
 
 func TestBasic(t *testing.T) {

@@ -10,7 +10,7 @@ https://github.com/ipld/specs/blob/master/selectors/selectors.md
 
 ## Documentation
 
-https://pkg.go.dev/github.com/ribasushi/go-ipld-selector-text-lite
+https://pkg.go.dev/github.com/ipld/go-ipld-selector-text-lite
 
 
 ## Lead Maintainer

@@ -18,7 +18,7 @@ import (
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 	"github.com/ipld/go-ipld-prime/traversal"
 
-	textselector "github.com/ribasushi/go-ipld-selector-text-lite"
+	textselector "github.com/ipld/go-ipld-selector-text-lite"
 )
 
 const FixturePath = "Links/1/Hash/Links/1/Hash"
