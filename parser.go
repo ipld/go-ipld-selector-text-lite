@@ -21,6 +21,8 @@ const (
 	PathValidCharset = `[- _0-9a-zA-Z\/\.]`
 )
 
+type Expression string
+
 var invalidChar = regexp.MustCompile(`[^` + PathValidCharset[1:len(PathValidCharset)-1] + `]`)
 var onlyDigits = regexp.MustCompile(`^[0-9]+$`)
 
@@ -37,11 +39,11 @@ PathValidCharset. The parsing rules are:
 	- Any other valid segment is treated as a hash key within a map
 
 */
-func SelectorFromPath(path string) (selector.Selector, error) {
+func SelectorFromPath(path Expression) (selector.Selector, error) {
 
 	if path == "/" {
 		return nil, fmt.Errorf("a standalone '/' is not a valid path")
-	} else if m := invalidChar.FindStringIndex(path); m != nil {
+	} else if m := invalidChar.FindStringIndex(string(path)); m != nil {
 		return nil, fmt.Errorf("path string contains invalid character at offset %d", m[0])
 	}
 
@@ -50,7 +52,7 @@ func SelectorFromPath(path string) (selector.Selector, error) {
 	// start from a matcher and walk backwards wrapping it recursively
 	ss := ssb.Matcher()
 
-	segments := strings.Split(path, "/")
+	segments := strings.Split(string(path), "/")
 
 	for i := len(segments) - 1; i >= 0; i-- {
 		if segments[i] == "" {

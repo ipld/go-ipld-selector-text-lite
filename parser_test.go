@@ -9,7 +9,7 @@ import (
 func TestBasic(t *testing.T) {
 
 	{
-		valid := "/a/42/b/c/"
+		valid := textselector.Expression("/a/42/b/c/")
 
 		sel, err := textselector.SelectorFromPath(valid)
 		if err != nil {
@@ -20,7 +20,7 @@ func TestBasic(t *testing.T) {
 		}
 	}
 
-	for _, invalid := range []string{
+	for _, invalid := range []textselector.Expression{
 		"/",
 		"//",
 		"//x",
