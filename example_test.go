@@ -12,8 +12,9 @@ import (
 	mdag "github.com/ipfs/go-merkledag"
 	mdagtest "github.com/ipfs/go-merkledag/test"
 
+	dagpb "github.com/ipld/go-codec-dagpb"
 	"github.com/ipld/go-ipld-prime"
-	dagpb "github.com/ipld/go-ipld-prime-proto"
+	_ "github.com/ipld/go-ipld-prime/codec/raw"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 	"github.com/ipld/go-ipld-prime/traversal"
@@ -50,14 +51,30 @@ func fixtureDagService() (mipld.DAGService, cid.Cid) {
 
 func ExampleSelectorFromPath() {
 
+	ctx := context.TODO()
+
+	// we put together a fixture datastore, and also return its root
+	ds, rootCid := fixtureDagService()
+
+	// we put our selector together
 	parsedSelector, err := textselector.SelectorFromPath(FixturePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ds, rootCid := fixtureDagService()
+	// not sure what this is for TBH...
+	linkContext := ipld.LinkContext{Ctx: ctx}
 
-	linkBlockLoader := func(lnk ipld.Link, _ ipld.LinkContext) (io.Reader, error) {
+	// this is what allows us to understand dagpb
+	nodePrototypeChooser := dagpb.AddSupportToChooser(
+		func(ipld.Link, ipld.LinkContext) (ipld.NodePrototype, error) {
+			return basicnode.Prototype.Any, nil
+		},
+	)
+
+	// this is how we interact with the fixture DS
+	linkSystem := cidlink.DefaultLinkSystem()
+	linkSystem.StorageReadOpener = func(_ ipld.LinkContext, lnk ipld.Link) (io.Reader, error) {
 		if cl, isCid := lnk.(cidlink.Link); !isCid {
 			return nil, fmt.Errorf("unexpected link type %#v", lnk)
 		} else {
@@ -69,40 +86,34 @@ func ExampleSelectorFromPath() {
 		}
 	}
 
-	nilLinkCtx := ipld.LinkContext{}
-	nodeStyleChooser := dagpb.AddDagPBSupportToChooser(
-		func(ipld.Link, ipld.LinkContext) (ipld.NodeStyle, error) {
-			return basicnode.Style.Any, nil
-		},
+	// this is how we pull the root node out of the DS
+	startNodePrototype, err := nodePrototypeChooser(cidlink.Link{Cid: rootCid}, linkContext)
+	if err != nil {
+		log.Fatal(err)
+	}
+	startNode, err := linkSystem.Load(
+		linkContext,
+		cidlink.Link{Cid: rootCid},
+		startNodePrototype,
 	)
-
-	nodeStyle, err := nodeStyleChooser(cidlink.Link{Cid: rootCid}, nilLinkCtx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	startNodeBuilder := nodeStyle.NewBuilder()
-	if err := (cidlink.Link{Cid: rootCid}).Load(
-		context.TODO(),
-		nilLinkCtx,
-		startNodeBuilder,
-		linkBlockLoader,
-	); err != nil {
-		log.Fatal(err)
-	}
-	startNode := startNodeBuilder.Build()
-
+	// this is executing the selector over the entire DS
 	err = traversal.Progress{
 		Cfg: &traversal.Config{
-			LinkLoader:                 linkBlockLoader,
-			LinkTargetNodeStyleChooser: nodeStyleChooser,
+			Ctx:                            ctx,
+			LinkSystem:                     linkSystem,
+			LinkTargetNodePrototypeChooser: nodePrototypeChooser,
 		},
 	}.WalkAdv(
 		startNode,
 		parsedSelector,
 		func(p traversal.Progress, n ipld.Node, _ traversal.VisitReason) error {
-			if rawNode, ok := n.(*dagpb.RawNode); ok {
-				content, _ := rawNode.AsBytes()
+
+			if n.Kind() == ipld.Kind_Bytes {
+				content, _ := n.AsBytes()
 				fmt.Printf("%s\n", content)
 			}
 			return nil

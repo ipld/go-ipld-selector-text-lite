@@ -47,7 +47,7 @@ func SelectorFromPath(path Expression) (selector.Selector, error) {
 		return nil, fmt.Errorf("path string contains invalid character at offset %d", m[0])
 	}
 
-	ssb := builder.NewSelectorSpecBuilder(basicnode.Style.Any)
+	ssb := builder.NewSelectorSpecBuilder(basicnode.Prototype.Any)
 
 	// start from a matcher and walk backwards wrapping it recursively
 	ss := ssb.Matcher()
@@ -78,7 +78,7 @@ func SelectorFromPath(path Expression) (selector.Selector, error) {
 			}
 
 			ss = ssb.ExploreIndex(
-				int(idx),
+				idx,
 				ss,
 			)
 		} else {
