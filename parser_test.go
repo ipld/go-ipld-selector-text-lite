@@ -11,11 +11,11 @@ func TestBasic(t *testing.T) {
 	{
 		valid := textselector.Expression("/a/42/b/c/")
 
-		sel, err := textselector.SelectorFromPath(valid, nil)
+		ss, err := textselector.SelectorSpecFromPath(valid, nil)
 		if err != nil {
 			t.Fatalf("Expected no error with valid path '%s'", valid)
 		}
-		if sel == nil {
+		if ss == nil {
 			t.Fatalf("Expected a selector from valid path '%s'", valid)
 		}
 	}
@@ -30,9 +30,9 @@ func TestBasic(t *testing.T) {
 		"001",
 		";",
 	} {
-		sel, err := textselector.SelectorFromPath(invalid, nil)
+		ss, err := textselector.SelectorSpecFromPath(invalid, nil)
 
-		if sel != nil {
+		if ss != nil {
 			t.Fatalf("Expected nil selector with invalid path '%s'", invalid)
 		}
 

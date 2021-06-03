@@ -13,23 +13,22 @@ import (
 	"strings"
 
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
-	"github.com/ipld/go-ipld-prime/traversal/selector"
 	"github.com/ipld/go-ipld-prime/traversal/selector/builder"
 )
 
-const (
-	PathValidCharset = `[- _0-9a-zA-Z\/\.]`
-)
+// PathValidCharset is the regular expression fully matching a valid textselector
+const PathValidCharset = `[- _0-9a-zA-Z\/\.]`
 
+// Expression is a string-type input to SelectorSpecFromPath
 type Expression string
 
 var invalidChar = regexp.MustCompile(`[^` + PathValidCharset[1:len(PathValidCharset)-1] + `]`)
 var onlyDigits = regexp.MustCompile(`^[0-9]+$`)
 
 /*
-SelectorFromPath transforms a textual path specification in the form x/y/10/z
-into a go-ipld-prime selector object. This is a short-term stop-gap on the road
-to a more versatile text-based selector specification. Therefore the accepted
+SelectorSpecFromPath transforms a textual path specification in the form x/y/10/z
+into a go-ipld-prime selector-spec object. This is a short-term stop-gap on the
+road to a more versatile text-based selector specification. Therefore the accepted
 syntax is relatively inflexible, and restricted to the members of
 PathValidCharset. The parsing rules are:
 
@@ -39,7 +38,7 @@ PathValidCharset. The parsing rules are:
 	- Any other valid segment is treated as a hash key within a map
 
 */
-func SelectorFromPath(path Expression, optionalSubselectorAtTarget builder.SelectorSpec) (selector.Selector, error) {
+func SelectorSpecFromPath(path Expression, optionalSubselectorAtTarget builder.SelectorSpec) (builder.SelectorSpec, error) {
 
 	if path == "/" {
 		return nil, fmt.Errorf("a standalone '/' is not a valid path")
@@ -92,5 +91,5 @@ func SelectorFromPath(path Expression, optionalSubselectorAtTarget builder.Selec
 		}
 	}
 
-	return selector.ParseSelector(ss.Node())
+	return ss, nil
 }

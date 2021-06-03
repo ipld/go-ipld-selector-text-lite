@@ -18,6 +18,7 @@ import (
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 	"github.com/ipld/go-ipld-prime/traversal"
+	"github.com/ipld/go-ipld-prime/traversal/selector"
 
 	textselector "github.com/ipld/go-ipld-selector-text-lite"
 )
@@ -57,7 +58,12 @@ func ExampleSelectorFromPath() {
 	ds, rootCid := fixtureDagService()
 
 	// we put our selector together
-	parsedSelector, err := textselector.SelectorFromPath(FixturePath, nil)
+	selectorSpec, err := textselector.SelectorSpecFromPath(FixturePath, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	parsedSelector, err := selector.ParseSelector(selectorSpec.Node())
 	if err != nil {
 		log.Fatal(err)
 	}
