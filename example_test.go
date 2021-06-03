@@ -57,7 +57,7 @@ func ExampleSelectorFromPath() {
 	ds, rootCid := fixtureDagService()
 
 	// we put our selector together
-	parsedSelector, err := textselector.SelectorFromPath(FixturePath)
+	parsedSelector, err := textselector.SelectorFromPath(FixturePath, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

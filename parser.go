@@ -39,7 +39,7 @@ PathValidCharset. The parsing rules are:
 	- Any other valid segment is treated as a hash key within a map
 
 */
-func SelectorFromPath(path Expression) (selector.Selector, error) {
+func SelectorFromPath(path Expression, optionalSubselectorAtTarget builder.SelectorSpec) (selector.Selector, error) {
 
 	if path == "/" {
 		return nil, fmt.Errorf("a standalone '/' is not a valid path")
@@ -49,11 +49,15 @@ func SelectorFromPath(path Expression) (selector.Selector, error) {
 
 	ssb := builder.NewSelectorSpecBuilder(basicnode.Prototype.Any)
 
-	// start from a matcher and walk backwards wrapping it recursively
-	ss := ssb.Matcher()
+	ss := optionalSubselectorAtTarget
+	// if nothing is given - use an exact matcher
+	if ss == nil {
+		ss = ssb.Matcher()
+	}
 
 	segments := strings.Split(string(path), "/")
 
+	// walk backwards wrapping the original selector recursively
 	for i := len(segments) - 1; i >= 0; i-- {
 		if segments[i] == "" {
 			// allow one leading and one trailing '/' at most
