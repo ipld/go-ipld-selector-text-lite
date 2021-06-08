@@ -35,7 +35,7 @@ PathValidCharset. The parsing rules are:
 	- The character `/` is a path segment separator
 	- An empty segment ( `...//...` ) and the unix-like `.` and `..` are illegal
 	- A segment composed entirely of digits `[0-9]+` is treated as an array index
-	- Any other valid segment is treated as a hash key within a map
+	- Any other valid segment is treated as a key within a map
 
 */
 func SelectorSpecFromPath(path Expression, optionalSubselectorAtTarget builder.SelectorSpec) (builder.SelectorSpec, error) {
