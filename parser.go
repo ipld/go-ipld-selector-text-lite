@@ -1,5 +1,4 @@
 /*
-
 Package textselector provides basic utilities for creation of IPLD selector
 objects from a flat textual representation. For further info see
 https://github.com/ipld/specs/blob/master/selectors/selectors.md
@@ -9,7 +8,6 @@ package textselector
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
@@ -23,20 +21,18 @@ const PathValidCharset = `[- _0-9a-zA-Z\/\.]`
 type Expression string
 
 var invalidChar = regexp.MustCompile(`[^` + PathValidCharset[1:len(PathValidCharset)-1] + `]`)
-var onlyDigits = regexp.MustCompile(`^[0-9]+$`)
 
 /*
 SelectorSpecFromPath transforms a textual path specification in the form x/y/10/z
 into a go-ipld-prime selector-spec object. This is a short-term stop-gap on the
-road to a more versatile text-based selector specification. Therefore the accepted
-syntax is relatively inflexible, and restricted to the members of
+road to a more versatile text-based selector description mechanism. Therefore
+the accepted syntax is relatively inflexible, and restricted to the members of
 PathValidCharset. The parsing rules are:
 
 	- The character `/` is a path segment separator
 	- An empty segment ( `...//...` ) and the unix-like `.` and `..` are illegal
-	- A segment composed entirely of digits `[0-9]+` is treated as an array index
-	- Any other valid segment is treated as a key within a map
-
+	- Any other valid segment is treated as a key within a map, or (if applicable)
+	  as an index within an array
 */
 func SelectorSpecFromPath(path Expression, optionalSubselectorAtTarget builder.SelectorSpec) (builder.SelectorSpec, error) {
 
@@ -70,25 +66,9 @@ func SelectorSpecFromPath(path Expression, optionalSubselectorAtTarget builder.S
 			return nil, fmt.Errorf("unsupported path segment '%s' at position %d", segments[i], i)
 		}
 
-		if onlyDigits.MatchString(segments[i]) {
-			if segments[i][0] == '0' && len(segments[i]) > 1 {
-				return nil, fmt.Errorf("invalid segment '%s' at position %d", segments[i], i)
-			}
-
-			idx, err := strconv.ParseInt(segments[i], 10, 31)
-			if err != nil {
-				return nil, fmt.Errorf("invalid index '%s' at position %d: %s", segments[i], i, err)
-			}
-
-			ss = ssb.ExploreIndex(
-				idx,
-				ss,
-			)
-		} else {
-			ss = ssb.ExploreFields(func(efsb builder.ExploreFieldsSpecBuilder) {
-				efsb.Insert(segments[i], ss)
-			})
-		}
+		ss = ssb.ExploreFields(func(efsb builder.ExploreFieldsSpecBuilder) {
+			efsb.Insert(segments[i], ss)
+		})
 	}
 
 	return ss, nil

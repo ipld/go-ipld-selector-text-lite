@@ -25,9 +25,6 @@ func TestBasic(t *testing.T) {
 		"//",
 		"//x",
 		"x//",
-		"00",
-		"01",
-		"001",
 		";",
 	} {
 		ss, err := textselector.SelectorSpecFromPath(invalid, nil)
