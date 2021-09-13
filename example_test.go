@@ -16,29 +16,54 @@ import (
 	// Dag-PB is additionally configured runtime
 	dagpb "github.com/ipld/go-codec-dagpb"
 	_ "github.com/ipld/go-ipld-prime/codec/raw"
+	"github.com/ipld/go-ipld-prime/datamodel"
+	"github.com/ipld/go-ipld-prime/traversal/selector"
 
 	"github.com/ipld/go-ipld-prime"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	basicnode "github.com/ipld/go-ipld-prime/node/basic"
 	"github.com/ipld/go-ipld-prime/traversal"
-	"github.com/ipld/go-ipld-prime/traversal/selector"
 
 	textselector "github.com/ipld/go-ipld-selector-text-lite"
 )
 
+const pathSelector = "Links/1/Hash/Links/001/Hash"
+const dagjsonSelector = `{"selector":{"f":{"f>":{"Links":{"f":{"f>":{"1":{"f":{"f>":{"Hash":{"f":{"f>":{"Links":{"f":{"f>":{"001":{"f":{"f>":{"Hash":{".":{}}}}}}}}}}}}}}}}}}}}}`
+
 func Example_selectorFromPath() {
-
-	//
-	// we put together a fixture datastore, and also return its root
-	ds, rootCid := fixtureDagService()
-
 	//
 	// Selector spec from a path, hopefully within that rootCid
 	// The 001 is deliberate: making sure index navigation still works
-	selectorSpec, err := textselector.SelectorSpecFromPath("Links/1/Hash/Links/001/Hash", false, nil)
+	selectorSpec, err := textselector.SelectorSpecFromPath(pathSelector, false, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	runSelector(selectorSpec.Node())
+
+	// Output:
+	// WantedNode
+}
+
+func Example_selectorFromDagjson() {
+	//
+	// Selector spec from a dag-json string, hopefully within that rootCid
+	// The spec should be the same as for the path version
+	selectorSpec, err := textselector.SelectorSpecFromJson(dagjsonSelector)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	runSelector(selectorSpec.Node())
+
+	// Output:
+	// WantedNode
+}
+
+func runSelector(selectorSpec datamodel.Node) {
+	//
+	// we put together a fixture datastore, and also return its root
+	ds, rootCid := fixtureDagService()
 
 	//
 	// this is how we R/O interact with the fixture DS
@@ -65,7 +90,7 @@ func Example_selectorFromPath() {
 
 	//
 	// compile our selector from spec
-	parsedSelector, err := selector.ParseSelector(selectorSpec.Node())
+	parsedSelector, err := selector.ParseSelector(selectorSpec)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -113,9 +138,6 @@ func Example_selectorFromPath() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Output:
-	// WantedNode
 }
 
 func fixtureDagService() (mipld.DAGService, cid.Cid) {
