@@ -34,7 +34,7 @@ PathValidCharset. The parsing rules are:
 	- Any other valid segment is treated as a key within a map, or (if applicable)
 	  as an index within an array
 */
-func SelectorSpecFromPath(path Expression, optionalSubselectorAtTarget builder.SelectorSpec) (builder.SelectorSpec, error) {
+func SelectorSpecFromPath(path Expression, matchPath bool, optionalSubselectorAtTarget builder.SelectorSpec) (builder.SelectorSpec, error) {
 
 	if path == "/" {
 		return nil, fmt.Errorf("a standalone '/' is not a valid path")
@@ -69,6 +69,10 @@ func SelectorSpecFromPath(path Expression, optionalSubselectorAtTarget builder.S
 		ss = ssb.ExploreFields(func(efsb builder.ExploreFieldsSpecBuilder) {
 			efsb.Insert(segments[i], ss)
 		})
+
+		if matchPath {
+			ss = ssb.ExploreUnion(ssb.Matcher(), ss)
+		}
 	}
 
 	return ss, nil

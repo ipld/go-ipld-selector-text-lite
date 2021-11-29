@@ -35,7 +35,7 @@ func Example_selectorFromPath() {
 	//
 	// Selector spec from a path, hopefully within that rootCid
 	// The 001 is deliberate: making sure index navigation still works
-	selectorSpec, err := textselector.SelectorSpecFromPath("Links/1/Hash/Links/001/Hash", nil)
+	selectorSpec, err := textselector.SelectorSpecFromPath("Links/1/Hash/Links/001/Hash", false, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
