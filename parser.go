@@ -32,10 +32,10 @@ road to a more versatile text-based selector description mechanism. Therefore
 the accepted syntax is relatively inflexible, and restricted to the members of
 PathValidCharset. The parsing rules are:
 
-	- The character `/` is a path segment separator
-	- An empty segment ( `...//...` ) and the unix-like `.` and `..` are illegal
-	- Any other valid segment is treated as a key within a map, or (if applicable)
-	  as an index within an array
+  - The character `/` is a path segment separator
+  - An empty segment ( `...//...` ) and the unix-like `.` and `..` are illegal
+  - Any other valid segment is treated as a key within a map, or (if applicable)
+    as an index within an array
 */
 func SelectorSpecFromPath(path Expression, matchPath bool, optionalSubselectorAtTarget builder.SelectorSpec) (builder.SelectorSpec, error) {
 
