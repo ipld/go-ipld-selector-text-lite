@@ -1,6 +1,6 @@
 module github.com/ipld/go-ipld-selector-text-lite
 
-go 1.23.0
+go 1.24
 
 require (
 	github.com/ipfs/go-cid v0.3.2
